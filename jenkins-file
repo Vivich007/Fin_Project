@@ -1,9 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCKER_CREDENTIALS_ID = 'docker-hub-credentials' // Jenkins credentials ID for Docker Hub
-        DOCKER_IMAGE = 'web-calculator'
-        DOCKER_REGISTRY = 'vivich007/web-calculator'
+        DOCKER_IMAGE = 'vivich007/web-calculator'
     }
     stages {
         stage('Clone Repository') {
@@ -14,27 +12,14 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("${DOCKER_IMAGE}")
-                }
-            }
-        }
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS_ID}") {
-                        dockerImage.push("latest")
-                    }
+                    dockerImage = docker.build(DOCKER_IMAGE)
                 }
             }
         }
         stage('Run Docker Container') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS_ID}") {
-                        def image = docker.image("${DOCKER_REGISTRY}:latest")
-                        image.pull()
-                        image.run('-p 7080:8080')
-                    }
+                    dockerImage.run('-p 7080:8080')
                 }
             }
         }
