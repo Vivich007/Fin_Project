@@ -3,7 +3,7 @@ pipeline {
     environment {
         DOCKER_CREDENTIALS_ID = 'docker-hub-credentials' // Jenkins credentials ID for Docker Hub
         DOCKER_IMAGE = 'web-calculator'
-        DOCKER_REGISTRY = 'your-docker-hub-username/web-calculator'
+        DOCKER_REGISTRY = 'vivich007/web-calculator'
     }
     stages {
         stage('Clone Repository') {
