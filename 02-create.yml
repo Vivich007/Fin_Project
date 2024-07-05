@@ -1,1 +1,48 @@
+---
+- name: Configure AWS, create S3 bucket for ETCD, and create cluster
+  hosts: Ans
+  become: yes
+  vars_files:
+    - aws_credentials.yml
 
+  tasks:
+    - name: Install AWS CLI
+      dnf:
+        name: awscli
+        state: present
+
+    - name: Configure AWS CLI
+      shell: |
+        aws configure set aws_access_key_id {{ aws_access_key }}
+        aws configure set aws_secret_access_key {{ aws_secret_key }}
+        aws configure set region {{ aws_region }}
+      environment:
+        AWS_ACCESS_KEY_ID: "{{ aws_access_key }}"
+        AWS_SECRET_ACCESS_KEY: "{{ aws_secret_key }}"
+        AWS_DEFAULT_REGION: "{{ aws_region }}"
+      no_log: true
+      
+    - name: Check if S3 bucket exists
+      shell: |
+        aws s3 ls "s3://viv-kube" || echo "Bucket does not exist"
+      register: bucket_check
+      ignore_errors: yes
+
+    - name: Create S3 bucket for ETCD
+      shell: aws s3 mb {{ kops_state_store }}
+      when: "'Bucket does not exist' in bucket_check.stdout"
+      ignore_errors: true
+
+    - name: Create Kubernetes cluster definition
+      shell: kops create cluster --name viv-k8s.k8s.local --state s3://viv-kube --zones us-east-2a,us-east-2b --node-count=2 --yes
+      environment:
+        PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
+        KOPS_STATE_STORE: "s3://viv-kube"
+        AWS_ACCESS_KEY_ID: "{{ aws_access_key }}"
+        AWS_SECRET_ACCESS_KEY: "{{ aws_secret_key }}"
+        AWS_DEFAULT_REGION: "{{ aws_region }}"
+      register: create_cluster_result
+
+    - name: Display cluster creation output
+      debug:
+        var: create_cluster_result
