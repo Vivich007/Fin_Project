@@ -1,1 +1,70 @@
+---
+- name: Install awscli, curl and wget, download kops, kubectl and move it to /usr/local/bin
+  hosts: Ans
+  become: yes
+  vars_files:
+    - aws_credentials.yml
 
+  tasks:
+    - name: Ensure curl-minimal is removed
+      dnf:
+        name: curl-minimal
+        state: absent
+
+    - name: Ensure curl, awscli and wget are installed
+      dnf:
+        name:
+          - curl
+          - wget
+          - awscli
+        state: present
+    
+    - name: Download kops
+      get_url:
+        url: https://github.com/kubernetes/kops/releases/download/v1.27.1/kops-linux-amd64
+        dest: /tmp/kops
+        mode: '0755'
+
+    - name: Change permissions of kops
+      file:
+        path: /tmp/kops
+        mode: '0755'
+        state: file
+
+    - name: Move kops to /usr/local/bin
+      command: mv /tmp/kops /usr/local/bin/kops
+
+    - name: Verify kops is in /usr/local/bin
+      stat:
+        path: /usr/local/bin/kops
+      register: kops_stat
+
+    - name: Print verification
+      debug:
+        msg: "kops is in /usr/local/bin: {{ kops_stat.stat.exists }}"
+
+    - name: Download kubectl
+      get_url:
+        url: "https://dl.k8s.io/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
+        dest: /tmp/kubectl
+        mode: '0755'
+      vars:
+        kubectl_version: "{{ lookup('pipe', 'curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt') }}"
+
+    - name: Change permissions of kubectl
+      file:
+        path: /tmp/kubectl
+        mode: '0755'
+        state: file
+
+    - name: Move kubectl to /usr/local/bin
+      command: mv /tmp/kubectl /usr/local/bin/kubectl
+
+    - name: Verify kubectl is in /usr/local/bin
+      stat:
+        path: /usr/local/bin/kubectl
+      register: kubectl_stat
+
+    - name: Print verification
+      debug:
+        msg: "kubectl is in /usr/local/bin: {{ kubectl_stat.stat.exists }}"
