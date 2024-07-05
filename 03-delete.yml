@@ -1,1 +1,14 @@
+---
+- name: Delete Kubernetes cluster using kops
+  hosts: Ans
+  tasks:
+    - name: Delete the Kubernetes cluster
+      command: kops delete cluster --state=s3://viv-kube --name=viv-k8s.k8s.local --yes
+      register: delete_cluster_result
+      ignore_errors: yes
+
+
+    - name: Display the result of the delete command
+      debug:
+        var: delete_cluster_result
 
