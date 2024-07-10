@@ -25,11 +25,26 @@ pipeline {
                 }
             }
         }
-    }
+        
+        stage('Get Kubernetes Services') {
+            steps {
+                script {
+                    // Get the list of services
+                    sh 'kubectl get services'
+                }
+            }
+        }
+    }   
 
     post {
         always {
-            // Cleanup, notifications, etc.
+            echo 'Pipeline finished.'
+        }
+        success {
+            echo 'Pipeline succeeded.'
+        }
+        failure {
+            echo 'Pipeline failed.'
         }
     }
 }
