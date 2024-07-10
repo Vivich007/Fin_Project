@@ -18,10 +18,10 @@ pipeline {
             steps {
                 script {
                     // Apply deployment.yaml
-                    sh 'kubectl apply -f deployment.yaml'
+                    sh 'sudo kubectl apply -f deployment.yaml'
                     
                     // Apply service.yaml
-                    sh 'kubectl apply -f service.yaml'
+                    sh 'sudo kubectl apply -f service.yaml'
                 }
             }
         }
@@ -30,7 +30,7 @@ pipeline {
             steps {
                 script {
                     // Get the list of services
-                    sh 'kubectl get services'
+                    sh 'sudo kubectl get services'
                 }
             }
         }
