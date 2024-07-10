@@ -1,0 +1,25 @@
+pipeline {
+    agent any
+    environment {
+        KUBECONFIG_CONTENT = credentials('kubeconfig')
+    }
+    stages {
+        stage('Deploy') {
+            steps {
+                script {
+                    // Write kubeconfig content to a temporary file
+                    def kubeconfigFile = 'kubeconfig'
+                    writeFile(file: kubeconfigFile, text: KUBECONFIG_CONTENT)
+                    
+                    // Set KUBECONFIG environment variable
+                    env.KUBECONFIG = kubeconfigFile
+
+                    // Run kubectl commands
+                    sh 'kubectl apply -f deployment.yaml'
+                    sh 'kubectl apply -f service.yaml'
+                    sh 'kubectl get services'
+                }
+            }
+        }
+    }
+}
